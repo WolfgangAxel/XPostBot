@@ -133,11 +133,11 @@ offset = 0
 while True:
     try:
         startTime = time.time()
-        top = R.subreddit(watchedSub).top('day').__next__()
+        top = R.subreddit(watchedSub.replace("/r/","").replace("r/","")).top('day').__next__()
         if top.is_self:
-            _ = R.subreddit(mySub).submit("Today's top result: \""+t.title+"\" by /u/"+top.author.name,url=top.url)
+            _ = R.subreddit(mySub.replace("/r/","").replace("r/","")).submit("Today's top result: \""+t.title+"\" by /u/"+top.author.name,url=top.url)
         else:
-            _ = R.subreddit(mySub).submit("Today's top result: \""+t.title+"\" by /u/"+top.author.name,selftext=top.selftext)
+            _ = R.subreddit(mySub.replace("/r/","").replace("r/","")).submit("Today's top result: \""+t.title+"\" by /u/"+top.author.name,selftext=top.selftext)
         sleep(sleepTime-(time.time()-startTime)-offset) # makes it exactly 24 hours
         offset = 0
     except Exception as e:
