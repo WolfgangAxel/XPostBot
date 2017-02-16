@@ -115,7 +115,7 @@ except:
 
 for variable in creds["M"]:
     exec(variable+' = creds["M"]["'+variable+'"]')
-sleepTime = 60*60*24
+sleepTime = 60*60*24 # one day
 
 ## Reddit authentication
 R = praw.Reddit(client_id = creds["R"]["c"],
@@ -129,18 +129,27 @@ R = praw.Reddit(client_id = creds["R"]["c"],
 #    Script Actions                                                    #
 #                                                                      #
 ########################################################################
+print("Bot started successfully. Entering main loop...")
 offset = 0
 while True:
     try:
         startTime = time.time()
         top = R.subreddit(watchedSub.replace("/r/","").replace("r/","")).top('day').__next__()
         if top.is_self:
-            _ = R.subreddit(mySub.replace("/r/","").replace("r/","")).submit("Today's top result: \""+t.title+"\" by /u/"+top.author.name,url=top.url)
+            post = R.subreddit(mySub.replace("/r/","").replace("r/","")).submit(top.title,selftext=top.selftext)
         else:
-            _ = R.subreddit(mySub.replace("/r/","").replace("r/","")).submit("Today's top result: \""+t.title+"\" by /u/"+top.author.name,selftext=top.selftext)
-        sleep(sleepTime-(time.time()-startTime)-offset) # makes it exactly 24 hours
+            post = R.subreddit(mySub.replace("/r/","").replace("r/","")).submit(top.title,url=top.url)
+        print('"'+top.title+'" successfully cross-posted')
+        comment = post.reply(
+            "User: `/u/"+top.author.name+"`\n\n"+
+            "Original date: "+time.strftime("%d %h, %Y, %H:%M %p GMT",time.gmtime(top.created_utc))+"\n\n"+
+            "[Link to original submission]("+top.shortlink+")"+
+            "\n\n****\n\n[^(I am a bot)](https://github.com/WolfgangAxel/XPostBot)")
+        _=comment.mod.distinguish(sticky=True)
+        print("Comment made. Sleeping...")
+        time.sleep(sleepTime-(time.time()-startTime)-offset) # makes it exactly 24 hours
         offset = 0
     except Exception as e:
         print(time.strftime('%D %T')+" - Error during main loop. Details:\n"+str(e.args)+"\nTrying again in one minute.")
         offset += 60
-        sleep(60)
+        time.sleep(60)
