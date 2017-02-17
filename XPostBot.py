@@ -143,6 +143,8 @@ while True:
         comment = post.reply(
             "User: `/u/"+top.author.name+"`\n\n"+
             "Original date: "+time.strftime("%d %h, %Y, %H:%M %p GMT",time.gmtime(top.created_utc))+"\n\n"+
+            "Original post's karma: "+"{0:,g}".format(top.score)+"\n\n"+
+            "Times gilded: "+str(top.gilded)+"\n\n"+
             "[Link to original submission]("+top.shortlink+")"+
             "\n\n****\n\n[^(I am a bot)](https://github.com/WolfgangAxel/XPostBot)")
         _=comment.mod.distinguish(sticky=True)
