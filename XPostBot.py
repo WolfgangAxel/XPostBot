@@ -149,9 +149,10 @@ while True:
             "\n\n****\n\n[^(I am a bot)](https://github.com/WolfgangAxel/XPostBot)")
         _=comment.mod.distinguish(sticky=True)
         print("Comment made. Sleeping...")
-        time.sleep(sleepTime-(time.time()-startTime)-offset) # makes it exactly 24 hours
-        offset = 0
+        exit("Operation successful. Exiting...")
+        # time.sleep(sleepTime-(time.time()-startTime)-offset) # makes it exactly 24 hours
+        # offset = 0
     except Exception as e:
         print(time.strftime('%D %T')+" - Error during main loop. Details:\n"+str(e.args)+"\nTrying again in one minute.")
-        offset += 60
+        # offset += 60
         time.sleep(60)
