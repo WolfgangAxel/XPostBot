@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-#  XPosterBot.py
+#  XPostBot.py
 #  
 #  Copyright 2017 Keaton Brown <linux.keaton@gmail.com>
 #  
@@ -48,10 +48,10 @@ def makeCreds(myPath):
     print(" 1) Go to https://www.reddit.com/prefs/apps and sign in with your "
           "bot account. The bot must have moderator privileges.\n"
           " 2) Press the 'create app' button, then enter the following :\n\n"
-          "    Name: XPosterBot (or another name if you so wish)\n"
+          "    Name: XPostBot (or another name if you so wish)\n"
           "    App type: script\n"
           "    description: (leave this blank or enter whatever you wish)\n"
-          "    about url: https://github.com/WolfgangAxel/XPosterBot\n"
+          "    about url: https://github.com/WolfgangAxel/XPostBot\n"
           "    redirect url: http://127.0.0.1:65010/authorize_callback\n\n"
           " 3) Finally, press the 'create app' button.")
     input("Press enter to continue... ")
@@ -96,8 +96,6 @@ def makeCreds(myPath):
 #                                                                      #
 ########################################################################
 
-myPath = __file__.replace("XPosterBot.py","")
-
 try:
     mod = "praw"
     import praw
@@ -105,8 +103,12 @@ try:
     import configparser
     mod = "time"
     import time
+    mod = "re"
+    from re import search
 except:
     exit(mod+" was not found. Install "+mod+" with pip to continue.")
+
+myPath = search(r"[a-zA-Z0-9.]*(.*)",__file__[::-1]).group(1)[::-1]
 
 try:
     creds = loadCreds(myPath)
@@ -115,13 +117,12 @@ except:
 
 for variable in creds["M"]:
     exec(variable+' = creds["M"]["'+variable+'"]')
-sleepTime = 60*60*24 # one day
 
 ## Reddit authentication
 R = praw.Reddit(client_id = creds["R"]["c"],
                 client_secret = creds["R"]["s"],
                 password = creds["R"]["p"],
-                user_agent = "XPosterBot, a bot for /r/"+mySub.replace("/r/","").replace("r/","")+"; hosted by /u/"+botMaster.replace("/u/","").replace("u/",""),
+                user_agent = "XPostBot, a bot for /r/"+mySub.replace("/r/","").replace("r/","")+"; hosted by /u/"+botMaster.replace("/u/","").replace("u/",""),
                 username = creds["R"]["u"].replace("/u/","").replace("u/",""))
 
 ########################################################################
@@ -130,10 +131,14 @@ R = praw.Reddit(client_id = creds["R"]["c"],
 #                                                                      #
 ########################################################################
 print("Bot started successfully. Entering main loop...")
-offset = 0
 while True:
     try:
-        startTime = time.time()
+        lastPost = R.redditor(creds["R"]["u"].replace("/u/","").replace("u/","")).submissions.new().__next__()
+        print("*"*20+"\nLast post was made on "+time.strftime("%d %h, %Y, %H:%M %p GMT",time.gmtime(lastPost.created_utc)))
+        if time.time() - lastPost.created_utc < 24*60*60:
+            print("  Sleeping until "+time.strftime("%d %h, %Y, %H:%M %p GMT",time.gmtime(lastPost.created_utc+24*60*60)))
+            time.sleep(24*60*60-(time.time() - lastPost.created_utc))
+            print("*"*20+"\nTime to cross-post!")
         top = R.subreddit(watchedSub.replace("/r/","").replace("r/","")).top('day').__next__()
         if top.is_self:
             post = R.subreddit(mySub.replace("/r/","").replace("r/","")).submit(top.title,selftext=top.selftext)
@@ -148,11 +153,7 @@ while True:
             "[Link to original submission]("+top.shortlink+")"+
             "\n\n****\n\n[^(I am a bot)](https://github.com/WolfgangAxel/XPostBot)")
         _=comment.mod.distinguish(sticky=True)
-        print("Comment made. Sleeping...")
-        exit("Operation successful. Exiting...")
-        # time.sleep(sleepTime-(time.time()-startTime)-offset) # makes it exactly 24 hours
-        # offset = 0
+        print("Comment made.")
     except Exception as e:
         print(time.strftime('%D %T')+" - Error during main loop. Details:\n"+str(e.args)+"\nTrying again in one minute.")
-        # offset += 60
         time.sleep(60)
